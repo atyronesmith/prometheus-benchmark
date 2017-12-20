@@ -21,7 +21,7 @@ CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 _INF = float("inf")
 _MINUS_INF = float("-inf")
 
-METRIC_COUNT=500
+METRIC_COUNT=100
 
 keep_running = True
 
@@ -42,7 +42,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             str('text/plain; version=0.0.4; charset=utf-8'))
         self.end_headers()
         self.wfile.write(self.generate_latest(port))
-        self.server.count += 1
+        self.server.counter += 1
 
     def floatToGoString(self, d):
         if d == _INF:
@@ -89,17 +89,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         return ''.join(output).encode('utf-8')
 
 class MyHTTPServer(HTTPServer):
-#    def __init__(self, *args, **kw):
      def __init__(self, server_address, RequestHandlerClass, metrics, otput):
-#        HTTPServer.__init__(self, *args, **kw)
         HTTPServer.__init__(self, server_address, RequestHandlerClass)
-#        pp = pprint.PrettyPrinter(indent=4)
-#        pp.pprint(args[3])               
         self.metrics = metrics
         self.otput = otput
-        self.count = 0
-#        pp = pprint.PrettyPrinter(indent=4)
-#        pp.pprint(args)               
+        self.counter = 0
  
 class HttpThread(threading.Thread):
     def __init__(self, group=None, target=None, name=None,
@@ -140,7 +134,7 @@ class HttpThread(threading.Thread):
             server.close()
 
     def getCounter(self):
-        return self.server.count
+        return self.server.counter
 
     def printCounter(self):
         print("port: " + str(self.port) + " count:" + str(self.counter))
@@ -210,6 +204,31 @@ def genMetrics(port):
                  value=random.random()))
 
     return metric
+
+def goThreads(port_start,port_count):
+    threads = []
+
+    port_end = port_start + port_count
+
+    print("Simulating " + str(port_count) + " hosts.")
+    print('Listening on localhost:'),
+    try: 
+      for port in range(port_start, port_end):
+        metrics = genMetrics(port)
+        otput = genOutput(metrics)
+
+        print('%s' % port),
+
+        t = HttpThread(args=(port, ), metrics=metrics, otput=otput)
+        threads.append(t)
+        t.daemon = True
+        t.start()
+    except (KeyboardInterrupt, SystemExit):
+        keep_running = False
+        print "Thread interuppted"
+
+    return threads
+
 
 signal.signal(signal.SIGINT, service_shutdown)
 

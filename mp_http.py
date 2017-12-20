@@ -95,11 +95,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         return ''.join(output).encode('utf-8')
 
 class MyHTTPServer(ThreadingMixIn, HTTPServer):
-    def __init__(self, *args, **kw):
-        HTTPServer.__init__(self, *args, **kw)
-        self.metrics = args[2]
-#        pp = pprint.PrettyPrinter(indent=4)
-#        pp.pprint(self.metrics)               
+    def __init__(self, server_address, RequestHandlerClass, metrics, otput):
+        HTTPServer.__init__(self, server_address, RequesthandlerClass)
+        self.metrics = metrics
+        self.otput = otput
+        self.counter = 0
  
 class HttpProc(object):
     def __init__(self, port=8080, metrics=None):
