@@ -23,7 +23,7 @@ CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 _INF = float("inf")
 _MINUS_INF = float("-inf")
 
-METRIC_COUNT = 100
+metric_count = 100
 
 keep_running = True
 
@@ -87,8 +87,11 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 #        en = time.time()
 #        print(str(en - st))
-        output = ['{} {}\n'.format(a, floatToGoString(
-            random.random())) for a in self.server.otput]
+        sec = int( time.time() ) % 60
+        output = ['{} {}\n'.format(a, str(sec)
+            ) for a in self.server.otput]
+#        output = ['{} {}\n'.format(a, floatToGoString(
+#            random.random())) for a in self.server.otput]
 
         return ''.join(output).encode('utf-8')
 
@@ -147,7 +150,7 @@ class HttpThread(threading.Thread):
 
 
 class HttpProc(object):
-    def __init__(self, port=8080, port_count=1):
+    def __init__(self, port, port_count, proc_num):
         self.port = port
         self.port_count = port_count
         self.serve = True
@@ -156,11 +159,12 @@ class HttpProc(object):
         self.threads = []
         self.metrics = []
         self.otput = []
+        self.proc_num = proc_num
 
         return
 
-    def serve_forever(self, port_start, port_count, counterx):
-        self.goThreads(port_start, port_count)
+    def serve_forever(self, port_start, port_count, counterx, proc_num):
+        self.goThreads(port_start, port_count, proc_num)
         try:
             while self.serve:
                 total = 0
@@ -180,7 +184,7 @@ class HttpProc(object):
     def run(self):
         try:
             self.proc = Process(target=self.serve_forever,
-                                args=(self.port, self.port_count,self.counter,))
+                                args=(self.port, self.port_count,self.counter,self.proc_num,))
             self.proc.start()
         except KeyboardInterrupt:
             pass
@@ -221,13 +225,15 @@ class HttpProc(object):
 
         return output
 
-    def genMetrics(self,port):
+    def genMetrics(self,port,proc_num):
         metric = []
-        for index in range(METRIC_COUNT):
+        for index in range(metric_count):
             metric.append(
                 GaugeMetricFamily(
                     "svcs_" +
                     str(port) +
+                    "_" +
+                    str(proc_num) +
                     "_" +
                     str(index) +
                     "_total",
@@ -236,14 +242,14 @@ class HttpProc(object):
 
         return metric
 
-    def goThreads(self,port_start, port_count):
+    def goThreads(self,port_start, port_count, proc_num):
         port_end = port_start + port_count
 
         print("Simulating " + str(port_count) + " hosts.")
         print('Listening on localhost: ' + str(port_start) + ".." + str(port_end - 1))
         try:
             for port in range(port_start, port_end):
-                self.metrics = self.genMetrics(port)
+                self.metrics = self.genMetrics(port,proc_num)
                 self.otput = self.genOutput(self.metrics)
                 t = HttpThread(args=(port, ), metrics=self.metrics,
                            otput=self.otput)
@@ -291,6 +297,8 @@ if __name__ == "__main__":
                         help="Number of seconds to run")
     parser.add_argument("-s", "--start_port", type=int,
                         default=9301, help="First port #")
+    parser.add_argument("--metric_count", type=int,
+                        default=metric_count, help="# of metrics per node")
     parser.add_argument("port_count", type=int, default=1,
                         help="Create port_count endpoints")
 
@@ -302,13 +310,14 @@ if __name__ == "__main__":
     if ports_per_proc == 0:
         ports_per_proc = 1
 
+    metric_count = args.metric_count
     port_curr = args.start_port
     port_end = args.start_port + args.port_count
 
     print("Creating " + str(args.mproc_count) + " processes")
     httpProcs = []
     for p in xrange(args.mproc_count):
-        httpProc = HttpProc(port_curr, ports_per_proc)
+        httpProc = HttpProc(port_curr, ports_per_proc, p)
         httpProcs.append(httpProc)
         httpProc.run()
 
@@ -327,7 +336,7 @@ if __name__ == "__main__":
         sum = 0
         for p in httpProcs:
             sum += p.getCounter()
-        delta = (sum - last_sum) * METRIC_COUNT
+        delta = (sum - last_sum) * metric_count
         if delta != last_delta:
             print("Requests " + str((sum - last_sum)) + ", Metrics / second: " + str(delta))
         last_sum = sum

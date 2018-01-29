@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from optparse import OptionParser
+from SocketServer import ThreadingMixIn
+#from optiparse import OptionParser
+import pprint
 import time
 import signal
 import random
@@ -9,6 +11,7 @@ import math
 import threading
 import os
 import sys
+#import yappi
 from urllib2 import build_opener, Request, HTTPHandler
 from urllib import quote_plus
 from urlparse import parse_qs, urlparse
@@ -19,6 +22,7 @@ _INF = float("inf")
 _MINUS_INF = float("-inf")
 
 keep_running = True
+
 
 class RequestHandler(BaseHTTPRequestHandler):
 #    def __init__(self, request, client_address, server):
@@ -67,7 +71,9 @@ class RequestHandler(BaseHTTPRequestHandler):
     def generate_latest(self, port):
         '''Returns the metrics from the registry in latest text format as a string.'''
         output = []
-        metrics = self.getMetrics(port)
+ #       metrics = self.getMetrics(port)
+        metrics = self.server.metrics
+
         for metric in metrics:
             output.append('# HELP {0} {1}'.format(
                 metric.name, metric.documentation.replace('\\', r'\\').replace('\n', r'\n')))
@@ -89,9 +95,22 @@ class RequestHandler(BaseHTTPRequestHandler):
                         self.floatToGoString(value)))
         return ''.join(output).encode('utf-8')
 
+class MyHTTPServer(ThreadingMixIn,HTTPServer):
+    def __init__(self, *args, **kw):
+        HTTPServer.__init__(self, *args, **kw)
+        self.metrics = args[2]
+#        pp = pprint.PrettyPrinter(indent=4)
+#        pp.pprint(self.metrics)               
+ 
 class HttpThread(threading.Thread):
-    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, verbose=None):
-        threading.Thread.__init__(self, group=group, target=target, name=name, verbose=verbose)
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs=None, verbose=None, metrics=None):
+        threading.Thread.__init__(
+            self,
+            group=group,
+            target=target,
+            name=name,
+            verbose=verbose)
 
         self.args = args
         self.kwargs = kwargs
@@ -99,23 +118,27 @@ class HttpThread(threading.Thread):
         self.port = args[0]
         self.serve = True
         self.counter = 0
- 
+        self.metrics = metrics
+
         return
 
     def run(self):
         try:
-           print('Listening on localhost:%s' % self.port)
-           server = HTTPServer(('', self.port), RequestHandler)
-           while self.serve:
-             server.handle_request()
-             self.counter = self.counter + 1
+            print('Listening on localhost:%s' % self.port)
+            server = MyHTTPServer(('', self.port), RequestHandler, metrics)
+            server.timeout = 5
+#            yappi.start()
+            while self.serve:
+                server.handle_request()
+                self.counter = self.counter + 1
+#            yappi.get_func_stats().print_all()               
         except (KeyboardInterrupt, SystemExit):
-           keep_running = False
-           print "stop"
+            keep_running = False
+            print "stop"
         finally:
-           sys.exit(0)
-           server.shutdown()
-           server.close()
+            sys.exit(0)
+            server.shutdown()
+            server.close()
 
     def getCounter(self):
         return self.counter
@@ -125,6 +148,7 @@ class HttpThread(threading.Thread):
 
     def stopServer(self):
         self.serve = False
+
 
 def default_handler(url, method, timeout, headers, data):
     '''Default handler that implements HTTP/HTTPS connections.
@@ -163,13 +187,13 @@ def basic_auth_handler(url, method, timeout, headers,
 def start_http(port):
     global keep_running
 
-    counter = 0;
+    counter = 0
     try:
         print('Listening on localhost:%s' % port)
         server = HTTPServer(('', port), RequestHandler)
         while is_running():
-          server.handle_request()
-          counter = counter + 1
+            server.handle_request()
+            counter = counter + 1
 
         print("port: " + str(port) + " count:" + str(counter))
 
@@ -187,19 +211,44 @@ def is_running():
 
     return keep_running
 
-def service_shutdown(signal,frame):
+
+def service_shutdown(signal, frame):
     global keep_running
     keep_running = False
+
+
+def genMetrics(port):
+    metric = []
+    for index in range(100):
+        metric.append(
+           GaugeMetricFamily(
+                 "svcs_" +
+                 str(index) +
+                 "_" +
+                 str(port) +
+                 "_documents_loaded",
+                 'Help text',
+                 value=random.random()))
+
+    return metric
 
 signal.signal(signal.SIGINT, service_shutdown)
 
 if __name__ == "__main__":
 
     port_count = 1
+    total_polls = 10000
 
-    if len(sys.argv) == 2:
+    if len(sys.argv) >= 2:
         try:
             port_count = int(sys.argv[1])
+        except Exception as e:
+            print e
+            sys.exit(1)
+
+    if len(sys.argv) >= 3:
+        try:
+            total_polls = int(sys.argv[2])
         except Exception as e:
             print e
             sys.exit(1)
@@ -210,29 +259,38 @@ if __name__ == "__main__":
     threads = []
     try:
         for port in range(port_start, port_end):
-                t = HttpThread(args=(port, ))
-                threads.append(t)
-                t.daemon=True
-                t.start()
+            metrics = genMetrics(port)
+            t = HttpThread(args=(port, ), metrics=metrics)
+            threads.append(t)
+            t.daemon = True
+            t.start()
     except (KeyboardInterrupt, SystemExit):
-            keep_running = False
-            print "Thread interuppted"
+        keep_running = False
+        print "Thread interuppted"
 
+    w = 0
+    now = time.time()
     while is_running():
-          time.sleep(1)
+        time.sleep(1)
+        w = w + 1
+        if w >= total_polls:
+          break
 
+    later = time.time()
+
+    print(" ")
     ct = 0
     for t in threads:
-        cnt = t.getCounter()
-        print( str(t.port) + ":" + str(cnt) ),
+        cnt = t.counter
+        print(str(t.port) + ":" + str(cnt)),
         ct += cnt
 #        t.printCounter()
     print(" ")
-    print("Served " + str(cnt) + "requests.")
-   
+    print("Served " + str(ct) + " requests in " + str(int(later - now)) + " seconds.")
+
     for t in threads:
         t.stopServer()
-    
+
     print("Stopping.."),
     for t in threads:
         print(t.port),
