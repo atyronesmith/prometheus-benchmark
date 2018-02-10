@@ -87,7 +87,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 #        en = time.time()
 #        print(str(en - st))
-        sec = int( time.time() ) % 60
+        sec = int( time.time() + (random.random()*10) ) % 60
         output = ['{} {}\n'.format(a, str(sec)
             ) for a in self.server.otput]
 #        output = ['{} {}\n'.format(a, floatToGoString(
@@ -245,7 +245,7 @@ class HttpProc(object):
     def goThreads(self,port_start, port_count, proc_num):
         port_end = port_start + port_count
 
-        print("Simulating " + str(port_count) + " hosts.")
+        print("Proc(" + str(proc_num) + ") Simulating " + str(port_count) + " hosts.")
         print('Listening on localhost: ' + str(port_start) + ".." + str(port_end - 1))
         try:
             for port in range(port_start, port_end):
@@ -292,7 +292,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mproc_count", type=int, default=1,
-                        help="Number of processes to create, threads will be evently spread across processes")
+                        help="Number of processes to create, threads will be evenly spread across processes")
     parser.add_argument("-t", "--time", type=int, default=60,
                         help="Number of seconds to run")
     parser.add_argument("-s", "--start_port", type=int,
@@ -300,28 +300,24 @@ if __name__ == "__main__":
     parser.add_argument("--metric_count", type=int,
                         default=metric_count, help="# of metrics per node")
     parser.add_argument("port_count", type=int, default=1,
-                        help="Create port_count endpoints")
+                        help="Number of ports to create for each process")
 
     args = parser.parse_args()
 
     total_seconds = args.time
 
-    ports_per_proc = ( args.port_count / args.mproc_count ) + 1
-    if ports_per_proc == 0:
-        ports_per_proc = 1
-
     metric_count = args.metric_count
-    port_curr = args.start_port
-    port_end = args.start_port + args.port_count
 
-    print("Creating " + str(args.mproc_count) + " processes")
+    print("Creating " + str(args.mproc_count) + " processes with " + str(args.port_count) + " ports each...")
+    print(" to simulate " + str(args.mproc_count*args.port_count) + " hosts...")
     httpProcs = []
+    port_curr = args.start_port
     for p in xrange(args.mproc_count):
-        httpProc = HttpProc(port_curr, ports_per_proc, p)
+        httpProc = HttpProc(port_curr, args.port_count, p)
         httpProcs.append(httpProc)
         httpProc.run()
 
-        port_curr += ports_per_proc
+        port_curr += args.port_count
 
     w = 0
     last_sum = 0

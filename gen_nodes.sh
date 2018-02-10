@@ -2,27 +2,42 @@
 
 if [ $# -lt 1 ] 
   then
-    echo "Usage: $0 num_nodes [port_count]"
+    echo "Generate Prometheus node.yml file(s)"
+    echo " The node-x.yml file specifies a number of target nodes"
+    echo " to scrape.  This program generates one or more node-x.yml"
+    echo " files that are invoked by associated jobs in the prometheus.yml file."
+    echo " The number of files generated is equal to the number proccess used "
+    echo " by the shtp.py program.  "
+    echo " "
+    echo "Usage: $0 num_processes ports_per_process [ start_port ]"
+    echo " "
+    echo " num_processes - specified by the -m N parameter to shtp.py "
+    echo " ports_per_process - specified by the num_ports parameter to shtp.py"
+    echo " start_port - defaults to 9300 "
     exit 1
 fi
-num_nodes=$1
-num_ports=$(expr $num_nodes + 1 )
+num_procs=$1
+ports_pp=$2
+start_port=9300
 
-if [ $# -eq 2 ] 
+echo "Number of procs: " ${num_procs}
+echo "Ports per proc: " ${ports_pp}
+
+if [ -n "$3" ]; 
   then
-   num_ports=$2
-   num_ports=$(expr $num_ports + 1 )
+    start_port = $32
 fi
 
-fname='nodes.yml'
+for ((i=0;i<$num_procs;i++))
+  do 
+     fname="nodes/nodes-$((${i}+1)).yml"
+     echo "- targets:" > ${fname}
 
-cat > ${fname} <<EOF
-- targets:
-EOF
-
-for i in $(seq 0 $num_nodes)
- do
-   offset=$((${i} % ${num_ports}))	 
-   echo "  - localhost:$(expr 9301 + ${offset} )" >> ${fname}
-done
+     for ((j=0; j<${ports_pp}; j++))
+       do
+         echo "  - localhost:$(expr ${start_port} + ${j} )" >> ${fname}
+     done
+     start_port=$((${start_port}+${ports_pp}))
+     echo "start_port = ${start_port}"
+  done
 

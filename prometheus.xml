@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<service>
-  <short>Prometheus</short>
-  <description>Prometheus Metrics Server</description>
-  <port protocol="tcp" port="9090"/>
-  <port protocol="tcp" port="9093"/>
-</service>
