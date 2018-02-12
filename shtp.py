@@ -233,8 +233,6 @@ class HttpProc(object):
                     "svcs_" +
                     str(port) +
                     "_" +
-                    str(proc_num) +
-                    "_" +
                     str(index) +
                     "_total",
                     'Help text',
@@ -291,15 +289,15 @@ if __name__ == "__main__":
     total_seconds = 10000
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mproc_count", type=int, default=1,
-                        help="Number of processes to create, threads will be evenly spread across processes")
+    parser.add_argument("-m", "--proc_count", type=int, default=1,
+                        help="Number of processes to create.  Each process will have a thread per port.")
     parser.add_argument("-t", "--time", type=int, default=60,
                         help="Number of seconds to run")
     parser.add_argument("-s", "--start_port", type=int,
-                        default=9301, help="First port #")
+                        default=9300, help="First port #")
     parser.add_argument("--metric_count", type=int,
                         default=metric_count, help="# of metrics per node")
-    parser.add_argument("port_count", type=int, default=1,
+    parser.add_argument("ports_per_proc", type=int, default=1,
                         help="Number of ports to create for each process")
 
     args = parser.parse_args()
@@ -308,16 +306,16 @@ if __name__ == "__main__":
 
     metric_count = args.metric_count
 
-    print("Creating " + str(args.mproc_count) + " processes with " + str(args.port_count) + " ports each...")
-    print(" to simulate " + str(args.mproc_count*args.port_count) + " hosts...")
+    print("Creating " + str(args.proc_count) + " processes with " + str(args.ports_per_proc) + " ports each...")
+    print(" to simulate " + str(args.proc_count*args.ports_per_proc) + " hosts...")
     httpProcs = []
     port_curr = args.start_port
-    for p in xrange(args.mproc_count):
-        httpProc = HttpProc(port_curr, args.port_count, p)
+    for p in xrange(args.proc_count):
+        httpProc = HttpProc(port_curr, args.ports_per_proc, p)
         httpProcs.append(httpProc)
         httpProc.run()
 
-        port_curr += args.port_count
+        port_curr += args.ports_per_proc
 
     w = 0
     last_sum = 0
@@ -334,7 +332,7 @@ if __name__ == "__main__":
             sum += p.getCounter()
         delta = (sum - last_sum) * metric_count
         if delta != last_delta:
-            print("Requests " + str((sum - last_sum)) + ", Metrics / second: " + str(delta))
+            print("Scrape requests / sec: " + str((sum - last_sum)) + ", Metrics / sec: " + str(delta))
         last_sum = sum
         last_delta = delta
 

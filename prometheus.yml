@@ -13,7 +13,7 @@ alerting:
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
-  # - "first_rules.yml"
+   - "rules1.yml"
   # - "second_rules.yml"
 
 # A scrape configuration containing exactly one endpoint to scrape:
@@ -28,43 +28,204 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
+# AUTO-GENERATED jobs
   - job_name: 'sa-1'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-1.yml
+      - files:
+        - nodes/nodes-1.yml
   - job_name: 'sa-2'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-2.yml
+      - files:
+        - nodes/nodes-2.yml
   - job_name: 'sa-3'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-3.yml
+      - files:
+        - nodes/nodes-3.yml
   - job_name: 'sa-4'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-4.yml
+      - files:
+        - nodes/nodes-4.yml
   - job_name: 'sa-5'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-5.yml
+      - files:
+        - nodes/nodes-5.yml
   - job_name: 'sa-6'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-6.yml
+      - files:
+        - nodes/nodes-6.yml
   - job_name: 'sa-7'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-7.yml
+      - files:
+        - nodes/nodes-7.yml
   - job_name: 'sa-8'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-8.yml
+      - files:
+        - nodes/nodes-8.yml
   - job_name: 'sa-9'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-9.yml
+      - files:
+        - nodes/nodes-9.yml
   - job_name: 'sa-10'
     file_sd_configs:
-            - files:
-                 - nodes/nodes-10.yml
+      - files:
+        - nodes/nodes-10.yml
+  - job_name: 'sa-11'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-11.yml
+  - job_name: 'sa-12'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-12.yml
+  - job_name: 'sa-13'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-13.yml
+  - job_name: 'sa-14'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-14.yml
+  - job_name: 'sa-15'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-15.yml
+  - job_name: 'sa-16'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-16.yml
+  - job_name: 'sa-17'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-17.yml
+  - job_name: 'sa-18'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-18.yml
+  - job_name: 'sa-19'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-19.yml
+  - job_name: 'sa-20'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-20.yml
+  - job_name: 'sa-21'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-21.yml
+  - job_name: 'sa-22'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-22.yml
+  - job_name: 'sa-23'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-23.yml
+  - job_name: 'sa-24'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-24.yml
+  - job_name: 'sa-25'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-25.yml
+  - job_name: 'sa-26'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-26.yml
+  - job_name: 'sa-27'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-27.yml
+  - job_name: 'sa-28'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-28.yml
+  - job_name: 'sa-29'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-29.yml
+  - job_name: 'sa-30'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-30.yml
+  - job_name: 'sa-31'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-31.yml
+  - job_name: 'sa-32'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-32.yml
+  - job_name: 'sa-33'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-33.yml
+  - job_name: 'sa-34'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-34.yml
+  - job_name: 'sa-35'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-35.yml
+  - job_name: 'sa-36'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-36.yml
+  - job_name: 'sa-37'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-37.yml
+  - job_name: 'sa-38'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-38.yml
+  - job_name: 'sa-39'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-39.yml
+  - job_name: 'sa-40'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-40.yml
+  - job_name: 'sa-41'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-41.yml
+  - job_name: 'sa-42'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-42.yml
+  - job_name: 'sa-43'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-43.yml
+  - job_name: 'sa-44'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-44.yml
+  - job_name: 'sa-45'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-45.yml
+  - job_name: 'sa-46'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-46.yml
+  - job_name: 'sa-47'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-47.yml
+  - job_name: 'sa-48'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-48.yml
+  - job_name: 'sa-49'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-49.yml
+  - job_name: 'sa-50'
+    file_sd_configs:
+      - files:
+        - nodes/nodes-50.yml
