@@ -2,5 +2,5 @@ prometheus
 promtool
 nodes
 jobs.yml
-rules.yml
-rules1.yml
+record-rules.yml
+alert-rules.yml
