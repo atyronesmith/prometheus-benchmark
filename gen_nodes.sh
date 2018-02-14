@@ -88,83 +88,11 @@ for ((i=0;i<$num_procs;i++))
      cat jobs.yml >> prometheus.yml 
   fi
 
-cat <<EOT > ${f_rules_name}
-groups: 
-  - name: sa-1m-aggr
-    interval: 1m
-    rules:
-EOT
-
 num_rules=$(( ${num_procs}*${ports_pp}*${METRICSPERPORT}*3 ))
-echo "Adding ${num_rules} to ${f_rules_name}"
-start_port=${STARTPORT}
-total_rules=0
-for ((i=0;i<$num_procs;i++))
-  do 
-    for ((j=0; j<${ports_pp}; j++))
-      do
-        for ((k=0; k<${METRICSPERPORT}; k++))
-          do
-            cport=$(expr ${start_port} + ${j})
-            mname="svcs_${cport}_${k}_total"
-cat <<EOT >> ${f_rules_name}
-        - record: ${mname}:avg:1m
-          expr: avg_over_time(${mname}[1m])
-        - record: ${mname}:max:1m
-          expr: max_over_time(${mname}[1m])
-        - record: ${mname}:min:1m
-          expr: min_over_time(${mname}[1m])
-
-EOT
-#            echo "      - record: ${mname}:cnt:1m" >> ${f_rules_name}
-#            echo "        expr: count_over_time(${mname}[1m])" >> ${f_rules_name}
-#            echo "      - record: ${mname}:std:1m" >> ${f_rules_name}
-#            echo "        expr: stddev_over_time(${mname}[1m])" >> ${f_rules_name}
-#            echo " ">> ${f_rules_name}
-          done
-      done
-     total_rules=$(( ${total_rules}+(${METRICSPERPORT}*${ports_pp}*3)))
-     echo -ne "\r${total_rules}       "
-     start_port=$((${start_port}+${ports_pp}))
-  done
-
-echo " "
-
-cat <<EOT > ${f_alert_rules_name}
-groups:
-  - name: sa-alert
-    rules:
-EOT
-
+echo "Generating ${num_rules} recording rules ...  ${f_rules_name}"
 num_rules=$(( ${num_procs}*${ports_pp}*${METRICSPERPORT} ))
-echo "Adding ${num_rules} to ${f_alert_rules_name}"
-start_port=${STARTPORT}
-total_rules=0
-for ((i=0;i<$num_procs;i++))
-  do 
-    for ((j=0; j<${ports_pp}; j++))
-      do
-        for ((k=0; k<${METRICSPERPORT}; k++))
-          do
-            cport=$(expr ${start_port} + ${j})
-            mname="svcs_${cport}_${k}_total"
-cat <<EOT > ${f_alert_rules_name}
-      - alert: ${mname}_high" >> ${f_alert_rules_name}
-        expr: ${mname} > 10" >> ${f_alert_rules_name}
-        for: 10s" >> ${f_alert_rules_name}
-        labels:" >> ${f_alert_rules_name}
-          severity: page" >> ${f_alert_rules_name}
-        annotations:" >> ${f_alert_rules_name}
-         summary: High value" >> ${f_alert_rules_name}
-
-EOT
-          done
-      done
-     total_rules=$(( ${total_rules}+(${METRICSPERPORT}*${ports_pp})))
-     echo -ne "\r${total_rules}       "
-     start_port=$((${start_port}+${ports_pp}))
-  done
- 
+echo "Generating ${num_rules} alert rules ... ${f_alert_rules_name}"
+python gen_rules.py "-m ${METRICSPERPORT}" "${num_procs}" "${ports_pp}"
 
 echo " "
 
