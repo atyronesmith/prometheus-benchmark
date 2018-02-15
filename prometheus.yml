@@ -15,6 +15,7 @@ alerting:
 rule_files:
    - "record-rules.yml"
    - "alert-rules.yml"
+#   - "general-rules.yml"
 
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
@@ -69,43 +70,3 @@ scrape_configs:
     file_sd_configs:
       - files:
         - nodes/nodes-10.yml
-  - job_name: 'sa-11'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-11.yml
-  - job_name: 'sa-12'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-12.yml
-  - job_name: 'sa-13'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-13.yml
-  - job_name: 'sa-14'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-14.yml
-  - job_name: 'sa-15'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-15.yml
-  - job_name: 'sa-16'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-16.yml
-  - job_name: 'sa-17'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-17.yml
-  - job_name: 'sa-18'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-18.yml
-  - job_name: 'sa-19'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-19.yml
-  - job_name: 'sa-20'
-    file_sd_configs:
-      - files:
-        - nodes/nodes-20.yml

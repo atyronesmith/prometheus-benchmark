@@ -230,9 +230,7 @@ class HttpProc(object):
         for index in range(metric_count):
             metric.append(
                 GaugeMetricFamily(
-                    "svcs_" +
-                    str(port) +
-                    "_" +
+                    "node_" +
                     str(index) +
                     "_total",
                     'Help text',
